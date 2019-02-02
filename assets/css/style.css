@@ -1,0 +1,21 @@
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    background-color:#cadde1;
+    background-image: url("../images/download.jpg");
+    height: 100%;
+    width: 100%;
+    color: #777777;
+}
+#train-table th,
+td {
+  display: inline-block;
+  width: 20%;
+  color:navy;
+}
+.card-header{
+    background-color: navy;
+    color:white;
+}
+.form-group{
+    color:navy;
+}
