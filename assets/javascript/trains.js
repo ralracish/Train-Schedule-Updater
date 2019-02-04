@@ -18,68 +18,70 @@ var database = firebase.database();
 $("#add-train-btn").on("click", function (event) {
   event.preventDefault();
 
-  // 3. Grab user input
+// 3. Grab user input
 
-  var trainName = $("#add-train-input").val().trim();
-  var destination = $("#destination-input").val().trim();
-  var firstTrainTime = $("#first-train-input").val().trim();
-  var frequency = $("#frequency-input").val().trim();
+var trainName = $("#add-train-input").val().trim();
+var destination = $("#destination-input").val().trim();
+var firstTrainTime = $("#first-train-input").val().trim();
+var frequency = $("#frequency-input").val().trim();
   
-  // 4. Create object for train data
-  var trainsData = {
-    trainName: trainName,
-    destination: destination,
-    firstTrainTime: firstTrainTime,
-    frequency: frequency,
-  };
+// 4. Create object for train data
+var trainsData = {
+  trainName: trainName,
+  destination: destination,
+  firstTrainTime: firstTrainTime,
+  frequency: frequency,
+};
 
-  // 5. Uploads trains data to the database
-  database.ref().push(trainsData);
+// 5. Input validation
 
-  // 6. Clears all of the text boxes
-  $("add-train-input").val("");
-  $("#destination-input").val("");
-  $("#first-train-input").val("");
-  $("#frequency-input").val("");
+if (trainName === "" || destination === "" || firstTrainTime === "" || frequency === "") {
+  $("#alert").addClass("show")
+
+}
+else {
+  $("#alert").addClass("hide")
+
+// 6. Uploads trains data to the database
+
+database.ref().push(trainsData);
+
+// 7. Clears all of the text boxes
+$("add-train-input").val("");
+$("#destination-input").val("");
+$("#first-train-input").val("");
+$("#frequency-input").val("");
+}
 })
 
-// 7. Create Firebase event for adding train information to database and row in html when user adds an entry 
-database.ref().on("child_added", function (childSnapshot) {
-  // console.log(childSnapshot.val());
-
-  // 8. Store everything added to form into a variable.
-  var trainName = childSnapshot.val().trainName;
-  var destination = childSnapshot.val().destination;
-  var firstTrainTime = childSnapshot.val().firstTrainTime;
-  var frequency = childSnapshot.val().frequency;
+// 8. Create Firebase event for adding train information to database and row in html when user adds an entry 
+setInterval(function () {
+  $("#train-table > tbody").empty();
+  database.ref().on("child_added", function (childSnapshot) {
+    var databaseData = childSnapshot.val();
 
 
-  // 9. Calculate next arrival time and minutes away
-  var convertedFirstTrain = moment(firstTrainTime, "HH:mm").subtract(1, "years");
-   console.log(convertedFirstTrain);
+// 9. Calculate next arrival time and minutes away
+    var convertedFirstTrain = moment(databaseData.firstTrainTime, "HH:mm").subtract(1, "years");
 
-  var difference = moment(firstTrainTime, "HH:mm").diff(moment(convertedFirstTrain), "minutes");
-   console.log("Difference in time: " + difference)
+    var difference = moment().diff(moment(convertedFirstTrain), "minutes");
 
-  var timeRemaining = difference % frequency;
-   console.log(frequency)
-   console.log("Time remaining " + timeRemaining);
+    var timeRemaining = difference % databaseData.frequency;
 
-  var minutesAway = frequency - timeRemaining;
-    console.log("Minutes til train: " + minutesAway);
+    var minutesAway = databaseData.frequency - timeRemaining;
 
-  var nextArrival = moment(convertedFirstTrain).add(minutesAway, "minutes");
+    var nextArrival = moment(convertedFirstTrain).add(minutesAway, "minutes");
     nextArrival=moment(nextArrival).format("HH:mm")
-    console.log(nextArrival)
 
-  // 10. Append the new row to the table
-  var newRow = $("<tr>").append(
-    $("<td>").text(trainName),
-    $("<td>").text(destination),
-    $("<td>").text(frequency),
-    $("<td>").text(nextArrival),
-    $("<td>").text(minutesAway)
-  );
-  $("#train-table > tbody").append(newRow);
+// 10. Append the new row to the table
+    var newRow = $("<tr>").append(
+      $("<td>").text(databaseData.trainName),
+      $("<td>").text(databaseData.destination),
+      $("<td>").text(databaseData.frequency),
+      $("<td>").text(nextArrival),
+      $("<td>").text(minutesAway)
+    );
+    $("#train-table > tbody").append(newRow);
 
-});
+  });
+}, 1000)
